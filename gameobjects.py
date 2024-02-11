@@ -19,6 +19,7 @@ class GameObject():
         self.components =   {
                             "spell": SpellComponent(parent_card=self),
                             "permanent": PermanentComponent(parent_card=self),
+                            "ability": AbilityComponent(parent_card=self),
                             "card": CardComponent(parent_card=self)
                             }
         return None
@@ -97,6 +98,21 @@ class PermanentComponent(Component):
     def on_enters_battlefield(self):
         self.power += 1
         self.toughness += 1
+
+class AbilityComponent(Component):
+    @trace_function
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        return None
+    
+    @trace_function
+    def activate_ability(self):
+        pass
+
+    @trace_function
+    def resolve_ability(self):
+        pass
+
 
 
 
