@@ -20,9 +20,7 @@ Player1.select_deck(deck=Deck1)
 
 
 Player1.library.shuffle_library()
-ic(Player1.library.draw_card(Player1))
-
-ic(Player1.hand.cards)
+Player1.library.draw_card(Player1)
 
 
 while True:
