@@ -106,7 +106,11 @@ class Stack(Zone):
 
     @trace_function
     def resolve_stack(self,battlefield):
-        self.cards[0].active_component.resolve_spell(self,battlefield)
+        activecomponent = self.cards[0].active_component
+        if (activecomponent.type() == 'SpellComponent'):
+          activecomponent.resolve_spell(self,battlefield)
+        if (activecomponent.type() == 'AbilityComponent'):
+          activecomponent.resolve_ability(self)
         return self, battlefield
 
 class Exile(Zone):
