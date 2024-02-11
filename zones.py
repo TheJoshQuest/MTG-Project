@@ -108,9 +108,9 @@ class Stack(Zone):
     def resolve_stack(self,battlefield):
         activecomponent = self.cards[0].active_component
         if (activecomponent.type() == 'SpellComponent'):
-          activecomponent.resolve_spell(self,battlefield)
+            activecomponent.resolve_spell(self,battlefield)
         if (activecomponent.type() == 'AbilityComponent'):
-          activecomponent.resolve_ability(self)
+            activecomponent.resolve_ability(self)
         return self, battlefield
 
 class Exile(Zone):
