@@ -1,7 +1,6 @@
 from zones import *
 from gameobjects import *
 from game import *
-'from player import *'
 from icecream import ic
 from testing import *
 from player import *
