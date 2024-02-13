@@ -14,6 +14,7 @@ class MagicTheGathering():
         self.turn_count = 0
         self.full_rotations = 0
         self.active_player = None
+        self.current_phase = None
         self.current_step = None
         return None
 
@@ -39,16 +40,38 @@ class MagicTheGathering():
             self.full_rotations += 1
         player.active_player = True
         self.active_player = player
-        self.beginning_step()
+        self.next_step()
         pass
 
     def next_step(self):
+        if self.current_phase is None and self.current_step is None:
+            self.start_step('Begining Phase','Untap Step')
         phase_order = ['Beginning Phase','Pre-combat Main Phase','Combat Phase','Post-combat Main Phase','Ending Phase']
-        index = self.current_step.index(self.current_step)
+        beginning_phase_order = ['Untap Step','Upkeep Step','Draw Step']
+        main_phase_order = []
+        combat_phase_order = ['Beginning of Combat Step, Declare Attackers Step, Declare Blockers Step, Calculate Damage Step, End of Combat Step']
+        ending_phase_order = ['End Step', 'Cleanup Step']
+        phaseindex = phase_order.index(self.current_phase)
+        if self.current_phase == 'Beginning Phase':
+            step_order = beginning_phase_order
+        if self.current_phase == 'Combat Phase':
+            step_order = combat_phase_order
+        if self.current_phase == 'Ending Phase':
+            step_order = ending_phase_order
+        if step_order is None:
+            step_order = main_phase_order
+        
+        stepindex = phase_order
+        phaseindex
+        self.start_step(nextphase,nextstep)
 
+    def start_step(self,phase = None, step = None):
+                
+        
+        pass
 
     def beginning_step(self):
-        self.current_step = 'Beginning Step'
+        self.current_phase = 'Beginning Phase'
         while (self.stack.cards>0 and all(player.passed_priority for player in self.players)):
             self.stack.resolve_stack(self.battlefield)
         self.next_step()
