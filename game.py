@@ -45,13 +45,13 @@ class MagicTheGathering():
 
     def next_step(self):
         if self.current_phase is None and self.current_step is None:
-            self.start_step('Begining Phase','Untap Step')
+            self.start_step('Beginning Phase','Untap Step')
         phase_order = ['Beginning Phase','Pre-combat Main Phase','Combat Phase','Post-combat Main Phase','Ending Phase']
         beginning_phase_order = ['Untap Step','Upkeep Step','Draw Step']
         main_phase_order = []
         combat_phase_order = ['Beginning of Combat Step, Declare Attackers Step, Declare Blockers Step, Calculate Damage Step, End of Combat Step']
         ending_phase_order = ['End Step', 'Cleanup Step']
-        phaseindex = phase_order.index(self.current_phase)
+        phase_index = phase_order.index(self.current_phase)
         if self.current_phase == 'Beginning Phase':
             step_order = beginning_phase_order
         if self.current_phase == 'Combat Phase':
@@ -61,9 +61,12 @@ class MagicTheGathering():
         if step_order is None:
             step_order = main_phase_order
         
-        stepindex = phase_order
-        phaseindex
-        self.start_step(nextphase,nextstep)
+
+        next_phase = None
+        next_step = None
+        #step_index = phase_order
+        #phase_index = 
+        self.start_step(next_phase,next_step)
 
     def start_step(self,phase = None, step = None):
                 
