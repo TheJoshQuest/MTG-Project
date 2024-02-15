@@ -72,7 +72,12 @@ class MagicTheGathering():
             self.start_step(next_phase,next_step)
 
     def start_step(self,phase = None, step = None):
-                
+        step_dict = {'Beginning Phase': {'Untap Step': self.untap_step(),
+                                         'Upkeep Step':self.upkeep_step(),
+                                         'Draw Step':self.draw_step()
+                                         },
+                     'Pre-Combat Main Phase':self.main_phase()
+                    }
         
         pass
 
