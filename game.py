@@ -60,6 +60,8 @@ class MagicTheGathering():
 
   #@trace_function
   def start_game(self):
+    for player in self.players:
+      player.library.shuffle_library()
     self.start_turn(self.determine_starting_player())
     pass
 
@@ -99,11 +101,11 @@ class MagicTheGathering():
       }
       if self.current_phase is None:
         raise
-      ic(self.current_phase)
+      #ic(self.current_phase)
       phase_index = phase_order.index(self.current_phase)
-      ic(phase_index)
+      #ic(phase_index)
       step_order = phase_dict[self.current_phase]
-      ic(step_order)
+      #ic(step_order)
       if self.current_step is not None:
         step_index = step_order.index(self.current_step)
       else:
@@ -119,22 +121,22 @@ class MagicTheGathering():
       next_step = None
       if len(step_order) > 0:
         next_step = step_order[next_step_index]
-      ic(next_phase)
-      ic(next_step)
+      #ic(next_phase)
+      #ic(next_step)
       self.start_step(phase=next_phase, step=next_step)
       return None
 
   def start_step(self, phase=None, step=None):
     step_dict = self.step_dict
-    ic(phase)
-    ic(step)
+    #ic(phase)
+    #ic(step)
     if phase is None:
       raise
     if ("Main Phase" not in phase) and step is None:
       raise
-    ic(step_dict)
-    ic(step_dict[phase])
-    ic(step_dict.get(phase, False))
+    #ic(step_dict)
+    #ic(step_dict[phase])
+    #ic(step_dict.get(phase, False))
     valid_phase = step_dict.get(phase, False)
     if step is None:
       step = 'Main Phase'
@@ -146,7 +148,7 @@ class MagicTheGathering():
     elif callable(valid_phase):
       valid_phase()
 
-    ic("Done")
+    #ic("Done")
     return None
 
   def hold_priority(self):
@@ -179,46 +181,46 @@ class MagicTheGathering():
   def untap_step(self):
     self.current_phase = 'Beginning Phase'
     self.current_step = 'Untap Step'
-    ic(self.current_step)
+    #ic(self.current_step)
     priority_held = True
     passed_step = False
     while not (passed_step):
       while priority_held:
         priority_held = self.hold_priority()
-        ic(priority_held)
+        #ic(priority_held)
       while (len(self.stack.cards) > 0
              and all(player.passed_priority for player in self.players)):
-        ic(self.stack.resolve_stack(self.battlefield))
-        ic(len(self.stack.cards))
-      ic(len(self.stack.cards) == 0)
-      ic(all(player.passed_priority for player in self.players))
+        self.stack.resolve_stack(self.battlefield)
+        #ic(len(self.stack.cards))
+      #ic(len(self.stack.cards) == 0)
+      #ic(all(player.passed_priority for player in self.players))
       if (len(self.stack.cards) == 0
           and all(player.passed_priority for player in self.players)):
         passed_step = True
-      ic(passed_step)
+      #ic(passed_step)
     self.next_step()
     return None
 
   def upkeep_step(self):
     self.current_phase = 'Beginning Phase'
     self.current_step = 'Upkeep Step'
-    ic(self.current_step)
+    #ic(self.current_step)
     priority_held = True
     passed_step = False
     while not (passed_step):
       while priority_held:
         priority_held = self.hold_priority()
-        ic(priority_held)
+        #ic(priority_held)
       while (len(self.stack.cards) > 0
              and all(player.passed_priority for player in self.players)):
-        ic(self.stack.resolve_stack(self.battlefield))
-        ic(len(self.stack.cards))
-      ic(len(self.stack.cards) == 0)
-      ic(all(player.passed_priority for player in self.players))
+        self.stack.resolve_stack(self.battlefield)
+        #ic(len(self.stack.cards))
+      #ic(len(self.stack.cards) == 0)
+      #ic(all(player.passed_priority for player in self.players))
       if (len(self.stack.cards) == 0
           and all(player.passed_priority for player in self.players)):
         passed_step = True
-      ic(passed_step)
+      #ic(passed_step)
     self.next_step()
 
     pass
@@ -226,51 +228,51 @@ class MagicTheGathering():
   def draw_step(self):
     self.current_phase = 'Beginning Phase'
     self.current_step = 'Draw Step'
-    ic(self.current_step)
+    #ic(self.current_step)
     priority_held = True
     passed_step = False
     while not (passed_step):
       while priority_held:
         priority_held = self.hold_priority()
-        ic(priority_held)
+        #ic(priority_held)
       while (len(self.stack.cards) > 0
              and all(player.passed_priority for player in self.players)):
-        ic(self.stack.resolve_stack(self.battlefield))
-        ic(len(self.stack.cards))
-      ic(len(self.stack.cards) == 0)
-      ic(all(player.passed_priority for player in self.players))
+        self.stack.resolve_stack(self.battlefield)
+        #ic(len(self.stack.cards))
+      #ic(len(self.stack.cards) == 0)
+      #ic(all(player.passed_priority for player in self.players))
       if (len(self.stack.cards) == 0
           and all(player.passed_priority for player in self.players)):
         passed_step = True
-      ic(passed_step)
+      #ic(passed_step)
     self.next_step()
     pass
 
   def main_phase(self):
     self.current_phase = 'Main Phase'
     self.current_step = None
-    ic(self.combat_this_turn)
+    #ic(self.combat_this_turn)
     if self.combat_this_turn is False:
       self.current_phase = 'Pre-combat Main Phase'
     else:
       self.current_phase = 'Post-combat Main Phase'
-    ic(self.current_step)
+    #ic(self.current_step)
     priority_held = True
     passed_step = False
     while not (passed_step):
       while priority_held:
         priority_held = self.hold_priority()
-        ic(priority_held)
+        #ic(priority_held)
       while (len(self.stack.cards) > 0
              and all(player.passed_priority for player in self.players)):
-        ic(self.stack.resolve_stack(self.battlefield))
-        ic(len(self.stack.cards))
-      ic(len(self.stack.cards) == 0)
-      ic(all(player.passed_priority for player in self.players))
+        self.stack.resolve_stack(self.battlefield)
+        #ic(len(self.stack.cards))
+      #ic(len(self.stack.cards) == 0)
+      #ic(all(player.passed_priority for player in self.players))
       if (len(self.stack.cards) == 0
           and all(player.passed_priority for player in self.players)):
         passed_step = True
-      ic(passed_step)
+      #ic(passed_step)
     self.next_step()
     pass
 
@@ -278,23 +280,23 @@ class MagicTheGathering():
     self.current_phase = 'Combat Phase'
     self.current_step = 'Beginning of Combat Step'
     self.combat_this_turn = True
-    ic(self.current_step)
+    #ic(self.current_step)
     priority_held = True
     passed_step = False
     while not (passed_step):
       while priority_held:
         priority_held = self.hold_priority()
-        ic(priority_held)
+        #ic(priority_held)
       while (len(self.stack.cards) > 0
              and all(player.passed_priority for player in self.players)):
-        ic(self.stack.resolve_stack(self.battlefield))
-        ic(len(self.stack.cards))
-      ic(len(self.stack.cards) == 0)
-      ic(all(player.passed_priority for player in self.players))
+        self.stack.resolve_stack(self.battlefield)
+        #ic(len(self.stack.cards))
+      #ic(len(self.stack.cards) == 0)
+      #ic(all(player.passed_priority for player in self.players))
       if (len(self.stack.cards) == 0
           and all(player.passed_priority for player in self.players)):
         passed_step = True
-      ic(passed_step)
+      #ic(passed_step)
     self.next_step()
     pass
 
