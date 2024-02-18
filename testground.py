@@ -1,3 +1,5 @@
+#https://gemini.google.com/app/62f319aef93f2156
+
 phase_order = ['Beginning Phase','Pre-combat Main Phase','Combat Phase','Post-combat Main Phase','Ending Phase']
 beginning_phase_order = ['Untap Step','Upkeep Step','Draw Step']
 main_phase_order = []
