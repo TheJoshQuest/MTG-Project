@@ -22,6 +22,6 @@ Player1.add_deck(deck=Deck1)
 Player1.select_deck(deck=Deck1)
 
 Player1.library.shuffle_library()
-Player1.library.draw_card(Player1)
+#Player1.library.draw_card(Player1)
 
 Game.start_game()

@@ -25,11 +25,17 @@ class Player():
   def select_deck(self, deck_name='', deck=None, owner=None):
     if deck is not None:
       deck_name = deck.name
-    if owner == None:
+    if owner is None:
       owner = self
     self.library = Library(deck=self.decks[deck_name], owner=owner)
     self.hand = Hand(owner=owner)
     self.graveyard = Graveyard(owner=owner)
+
+  def draw(self, num_cards=1):
+    i = 0
+    while i < num_cards:
+      self.library.draw_card(self)
+      i += 1
 
 
 class Deck():
