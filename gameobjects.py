@@ -106,16 +106,31 @@ class PermanentComponent(Component):
   #@trace_function
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
-    self.originalpower = self.parent_card.printedpower
-    self.originaltoughness = self.parent_card.printedtoughness
-    self.power = self.originalpower
-    self.toughness = self.originaltoughness
+    self.basepower = self.parent_card.printedpower
+    self.basetoughness = self.parent_card.printedtoughness
+    self.power = self.basepower
+    self.toughness = self.basetoughness
+    self.tapped = None
+    self.is_attacking = None
     return None
 
   #@trace_function
   def on_enters_battlefield(self):
     self.power += 1
     self.toughness += 1
+
+  def tap(self):
+    self.tapped = True
+    pass
+
+  def untap(self):
+    self.tapped = False
+    pass
+
+  def declare_attacker(self):
+    self.is_attacking = True
+    self.tap()
+    pass
 
 
 class AbilityComponent(Component):
