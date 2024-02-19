@@ -9,6 +9,7 @@ test_creature = Card(name='Test Creature',
                      printedpower=1,
                      printedtoughness=1,
                      text='',
+                     cost = {'colorless': 0},
                      cardtype=['Creature'])
 test_land = Card(name='Test Land', text='', cardtype=['Land'])
 test_sorcery = Card(name='Test Sorcery', text='', cardtype=['Sorcery'])

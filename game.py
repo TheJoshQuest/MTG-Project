@@ -13,6 +13,7 @@ class MagicTheGathering():
     self.battlefield = Battlefield()
     self.stack = Stack()
     self.exile = Exile()
+    self.objects = {}
     self.players = []
     self.format = ''
     self.turn_count = 0
@@ -83,6 +84,10 @@ class MagicTheGathering():
   def start_game(self):
     for player in self.players:
       player.library.shuffle_library()
+    for player in self.players:
+      for card in player.library.cards:
+        card.object_id = len(self.objects) + 1
+        self.objects[card.object_id] = card
     self.start_turn(self.determine_starting_player())
     pass
 
@@ -160,26 +165,28 @@ class MagicTheGathering():
   def hold_priority(self):
     if self.active_player is None:
       raise
-    for i, item in enumerate(self.active_player.hand.cards):
+    available_actions = self.active_player.get_available_actions()
+    for i, item in enumerate(available_actions):
       print(f'{i+1}: {item}')
-      if i == len(self.active_player.hand.cards) - 1:
-        print(f'{i+2}: {"Next Step"}')
-    if len(self.active_player.hand.cards) == 0:
-      print(f'{1}: {"Next Step"}')
-    index = int(input('Select a card to cast: ')) - 1
-    if 0 <= index < len(self.active_player.hand.cards):
-      selected_card = self.active_player.hand.cards[index]
-      print(f'Casting {selected_card}')
-      selected_card.cast_spell(self.active_player.hand, self.stack)
-      return True
-    if index >= len(self.active_player.hand.cards):
-      if index == len(self.active_player.hand.cards):
+    index = int(input('Select action: ')) - 1
+    if 0 <= index < len(available_actions):
+      selected_action = available_actions[index]
+      if DEBUG:
+        ic(selected_action)
+        if isinstance(selected_action,Card):
+          ic(selected_action.object_id)
+          ic(selected_action.hash)
+      if selected_action == 'Concede' or selected_action == 'Pass Step':
         self.active_player.passed_priority = True
+        if selected_action == 'Concede':
+          self.active_player.concede()
         print('Next Step')
         #self.active_player.library.draw_card(self.active_player)
         return False
       else:
-        print('Invalid index')
+        print(f'Casting {selected_action}')
+        selected_action.cast_spell(self.active_player.hand, self.stack)
+        return True
     else:
       print('Invalid index')
     return False
@@ -197,7 +204,8 @@ class MagicTheGathering():
         #ic(priority_held)
       while (len(self.stack.cards) > 0
              and all(player.passed_priority for player in self.players)):
-        self.stack.resolve_stack(self.battlefield)
+        self.stack.resolve_stack(self.battlefield) 
+        priority_held = True
         #ic(len(self.stack.cards))
       #ic(len(self.stack.cards) == 0)
       #ic(all(player.passed_priority for player in self.players))
@@ -308,6 +316,7 @@ class MagicTheGathering():
   #@trace_function
   def add_player(self, player):
     self.players.append(player)
+    player.game = self
     pass
 
 

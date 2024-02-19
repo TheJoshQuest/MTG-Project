@@ -1,10 +1,13 @@
 from icecream import ic
 from testing import *
+import random
+from datetime import datetime
 'global PERMANENTTYPES'
 PERMANENTTYPES = [
     'Land', 'Creature', 'Artifact', 'Enchantment', 'Planeswalker', 'Battle'
 ]
 
+DEBUG = True
 
 class GameObject():
   #@trace_function
@@ -16,10 +19,13 @@ class GameObject():
                printedpower=None,
                printedtoughness=None,
                owner=None,
-               controller=None):
+               controller=None,
+               cost = {}):
     self.name = name
+    self.basename = name
     self.color = color
     self.text = text
+    self.cost = cost
     self.cardtype = cardtype
     self.printedpower = printedpower
     self.printedtoughness = printedtoughness
@@ -32,7 +38,24 @@ class GameObject():
         "ability": AbilityComponent(parent_card=self),
         "card": CardComponent(parent_card=self)
     }
+    self.object_id = None
+    if self.owner is not None and self.object_id is None:
+      self.object_id = len(self.owner.game.objects) + 1
+      self.owner.game.objects[self.object_id] = self
+    if self.controller is not None and self.object_id is None:
+      self.object_id = len(self.controller.game.objects) + 1
+      self.controller.game.objects[self.object_id] = self
+    
+    self.hash = self.__hash__()
     return None
+  
+  def __hash__(self):
+    now = datetime.now()
+    objectid = 0
+    if self.object_id is not None:
+      objectid = self.object_id
+    self.hash = hash((self.basename,now,objectid,random.random()))
+    return self.hash
 
   #@trace_function
   def __str__(self) -> str:
@@ -47,12 +70,34 @@ class Card(GameObject):
     return None
 
   #@trace_function
-  def can_cast_spell(self):
-    return True
+  def can_play_card(self):
+    meets_cost = None
+    meets_timing = None
+    meets_condition = True
+    can_play = False
+    if self.cost['colorless'] <= self.owner.mana['colorless']:
+        meets_cost = True
+    if self.controller.game.current_step == 'Main Phase' and (len(self.controller.game.stack.cards)==0):
+        meets_timing = True
+    if meets_cost and meets_timing and meets_condition:
+      can_play = True
+    if DEBUG == True:
+        ic(self.controller.game.current_step)
+        ic(len(self.controller.game.stack.cards))
+        ic(meets_cost)
+        ic(meets_timing)
+        ic(meets_condition)
+        ic(can_play)
+    return can_play
+    
+
+
+
+    return False
 
   #@trace_function
   def cast_spell(self, hand, stack):
-    if self.can_cast_spell():
+    if self.can_play_card():
       hand.remove_card(self)
       self.components["spell"].activate_component()
       stack.add_card(self)
@@ -62,7 +107,7 @@ class Card(GameObject):
 class Component():
 
   #@trace_function
-  def __init__(self, parent_card):
+  def __init__(self, parent_card: Card):
     self.parent_card = parent_card
     return None
 
@@ -106,10 +151,11 @@ class PermanentComponent(Component):
   #@trace_function
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
-    self.basepower = self.parent_card.printedpower
-    self.basetoughness = self.parent_card.printedtoughness
-    self.power = self.basepower
-    self.toughness = self.basetoughness
+    self.base_power = self.parent_card.printedpower
+    self.base_toughness = self.parent_card.printedtoughness
+    self.power = self.base_power
+    self.toughness = self.base_toughness
+    self.damage = None
     self.tapped = None
     self.is_attacking = None
     return None
