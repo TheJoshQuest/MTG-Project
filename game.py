@@ -5,6 +5,20 @@ from icecream import ic
 
 DEBUG = True
 
+def cyclic_shift(my_list, n):
+  """
+  Performs a cyclic shift of a list, starting at the nth index.
+
+  Args:
+      my_list: The list to be shifted.
+      n: The index at which to start the shift.
+
+  Returns:
+      The cyclically shifted list.
+  """
+  list_len = len(my_list)
+  n = n % list_len  # Handle cases where n is greater than the list length
+  return my_list[n:] + my_list[:n] 
 
 class MagicTheGathering():
 
@@ -15,10 +29,12 @@ class MagicTheGathering():
     self.exile = Exile()
     self.objects = {}
     self.players = []
+    self.active_players = []
     self.format = ''
     self.turn_count = 0
     self.full_rotations = 0
     self.active_player = None
+    self.priority_player = None
     self.starting_player = None
     self.current_phase = None
     self.current_step = None
@@ -75,16 +91,17 @@ class MagicTheGathering():
 
   #@trace_function
   def determine_starting_player(self):
-    starting_player = random.choice(self.players)
+    starting_player = random.choice(self.active_players)
     starting_player.starting_player = True
     self.starting_player = starting_player
     return starting_player
 
   #@trace_function
   def start_game(self):
-    for player in self.players:
+    self.active_players = self.players
+    for player in self.active_players:
       player.library.shuffle_library()
-    for player in self.players:
+    for player in self.active_players:
       for card in player.library.cards:
         card.object_id = len(self.objects) + 1
         self.objects[card.object_id] = card
@@ -163,33 +180,35 @@ class MagicTheGathering():
     return None
 
   def hold_priority(self):
-    if self.active_player is None:
-      raise
-    available_actions = self.active_player.get_available_actions()
-    for i, item in enumerate(available_actions):
-      print(f'{i+1}: {item}')
-    index = int(input('Select action: ')) - 1
-    if 0 <= index < len(available_actions):
-      selected_action = available_actions[index]
-      if DEBUG:
-        ic(selected_action)
-        if isinstance(selected_action,Card):
-          ic(selected_action.object_id)
-          ic(selected_action.hash)
-      if selected_action == 'Concede' or selected_action == 'Pass Step':
-        self.active_player.passed_priority = True
-        if selected_action == 'Concede':
-          self.active_player.concede()
-        print('Next Step')
-        #self.active_player.library.draw_card(self.active_player)
-        return False
+    self.priority_player = self.active_player
+    priority_order = cyclic_shift(self.active_players,
+                                  self.players.index(self.priority_player))
+    for player in priority_order:
+      available_actions = player.get_available_actions()
+      for i, item in enumerate(available_actions):
+        print(f'{i+1}: {item}')
+      index = int(input('Select action: ')) - 1
+      if 0 <= index < len(available_actions):
+        selected_action = available_actions[index]
+        if DEBUG:
+          ic(selected_action)
+          if isinstance(selected_action, Card):
+            ic(selected_action.object_id)
+            ic(selected_action.hash)
+        if selected_action == 'Concede' or selected_action == 'Pass Step':
+          player.passed_priority = True
+          if selected_action == 'Concede':
+            player.concede()
+          print('Next Step')
+          #self.active_player.library.draw_card(self.active_player)
+          return False
+        else:
+          print(f'Casting {selected_action}')
+          selected_action.cast_spell(player.hand, self.stack)
+          return True
       else:
-        print(f'Casting {selected_action}')
-        selected_action.cast_spell(self.active_player.hand, self.stack)
-        return True
-    else:
-      print('Invalid index')
-    return False
+        print('Invalid index')
+      return False
 
   def turn_structure(self):
     if DEBUG:
@@ -203,14 +222,14 @@ class MagicTheGathering():
         priority_held = self.hold_priority()
         #ic(priority_held)
       while (len(self.stack.cards) > 0
-             and all(player.passed_priority for player in self.players)):
-        self.stack.resolve_stack(self.battlefield) 
+             and all(player.passed_priority for player in self.active_players)):
+        self.stack.resolve_stack(self.battlefield)
         priority_held = True
         #ic(len(self.stack.cards))
       #ic(len(self.stack.cards) == 0)
-      #ic(all(player.passed_priority for player in self.players))
+      #ic(all(player.passed_priority for player in self.active_players))
       if (len(self.stack.cards) == 0
-          and all(player.passed_priority for player in self.players)):
+          and all(player.passed_priority for player in self.active_players)):
         passed_step = True
       #ic(passed_step)
     return None
@@ -306,8 +325,8 @@ class MagicTheGathering():
     if self.active_player is None:
       raise
     self.active_player.is_active_player = False
-    index = self.players.index(self.active_player)
-    self.start_turn(self.players[(index + 1) % len(self.players)])
+    index = self.active_players.index(self.active_player)
+    self.start_turn(self.active_players[(index + 1) % len(self.active_players)])
     pass
 
   def end_game(self):
