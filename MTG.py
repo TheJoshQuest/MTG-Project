@@ -3,6 +3,7 @@ from icecream import ic
 
 DEBUG = True
 
+
 class MagicTheGathering():
 
   def __init__(self):
@@ -40,7 +41,7 @@ class MagicTheGathering():
     self.game_loop()
 
   def determine_starting_player(self):
-    if self.players is None or len(self.players)==0:
+    if self.players is None or len(self.players) == 0:
       raise
     random.shuffle(self.players)
     self.starting_player = self.players[0]
@@ -62,12 +63,11 @@ class MagicTheGathering():
         self.current_step = "Untap Step"
       if self.starting_player is None:
         self.start_turn(self.determine_starting_player())
-      else:
-        if self.current_step == 'Cleanup Step':
-          self.start_turn(self.next_turn())
       step_class = self.step_registry[self.current_step]
       current_step = step_class()
       current_step.execute(self)
+      if self.current_step == 'Cleanup Step':
+        self.start_turn(self.next_turn())
       self.advance_step()
 
   def advance_step(self):
@@ -82,7 +82,13 @@ class MagicTheGathering():
     pass
 
   def next_turn(self):
-    next_player_index=((self.players.index(self.active_player)+1 % len(self.players))-1)
+    
+    next_player_index = ((((self.players.index(self.active_player) + 1) + 1) %
+                          len(self.players)) - 1)
+    if DEBUG:
+      ic(next_player_index)
+      turn_order = [player.name for player in self.players]
+      ic(turn_order)
     return self.players[next_player_index]
 
 
@@ -90,7 +96,7 @@ class Step():
 
   def __init__(self):
     pass
-  
+
   def execute(self, game):
     pass
 
@@ -230,4 +236,6 @@ if __name__ == "__main__":
   game = MagicTheGathering()
   game.add_player(Player(name='Alice'))
   game.add_player(Player(name="Bob"))
+  game.add_player(Player(name="Joe"))
+  game.add_player(Player(name="Tim"))
   game.start_game()
