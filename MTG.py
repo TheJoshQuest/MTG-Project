@@ -8,11 +8,14 @@ class MagicTheGathering():
 
   def __init__(self):
     self.players = []
+    self.active_players = []
     self.active_player = None
     self.turn_count = 0
+    self.round_count = 0
     self.starting_player = None
     self.current_phase = None
     self.current_step = None
+    self.combat_occured = None
     self.step_registry = {
         'Untap Step': UntapStep,
         'Upkeep Step': UpkeepStep,
@@ -34,18 +37,21 @@ class MagicTheGathering():
     if player is not None:
       if self.players is None:
         self.players = []
+      if self.active_players is None:
+        self.active_players = []
       self.players.append(player)
+      self.active_players.append(player)
     return None
 
   def start_game(self):
     self.game_loop()
 
   def determine_starting_player(self):
-    if self.players is None or len(self.players) == 0:
+    if self.active_players is None or len(self.active_players) == 0:
       raise
-    random.shuffle(self.players)
-    self.starting_player = self.players[0]
-    self.players[0].is_starting_player = True
+    random.shuffle(self.active_players)
+    self.starting_player = self.active_players[0]
+    self.active_players[0].is_starting_player = True
     return (self.starting_player)
 
   def start_turn(self, player=None):
@@ -53,6 +59,7 @@ class MagicTheGathering():
       raise
     player.is_active_player = True
     self.active_player = player
+    self.combat_occured = False
     self.turn_count += 1
 
   def game_loop(self):
@@ -62,10 +69,11 @@ class MagicTheGathering():
         self.current_phase = "Beginning Phase"
         self.current_step = "Untap Step"
       if self.starting_player is None:
+        self.round_count += 1
         self.start_turn(self.determine_starting_player())
       step_class = self.step_registry[self.current_step]
-      current_step = step_class()
-      current_step.execute(self)
+      current_step = step_class(game=self)
+      current_step.execute()
       if self.current_step == 'Cleanup Step':
         self.start_turn(self.next_turn())
       self.advance_step()
@@ -82,144 +90,167 @@ class MagicTheGathering():
     pass
 
   def next_turn(self):
-    
-    next_player_index = ((((self.players.index(self.active_player) + 1) + 1) %
-                          len(self.players)) - 1)
+    curent_player_index = self.active_players.index(self.active_player)
+    next_player_index = (((
+        (curent_player_index + 1) + 1) % len(self.active_players)) - 1)
     if DEBUG:
       ic(next_player_index)
-      turn_order = [player.name for player in self.players]
+      turn_order = [player.name for player in self.active_players]
       ic(turn_order)
-    return self.players[next_player_index]
+    if next_player_index == 0 and curent_player_index == len(
+        self.active_players) - 1:
+      self.round_count += 1
+    return self.active_players[next_player_index]
 
 
 class Step():
 
-  def __init__(self):
+  def __init__(self, game: MagicTheGathering | None = None, **kwargs):
+    for key, value in kwargs.items():
+      setattr(self, key, value)
+    self.game = game
+    self.priority_passed = False
     pass
 
   def execute(self, game):
+    pass
+
+  def step_loop(self):
     pass
 
 
 class UntapStep(Step):
 
-  def __init__(self):
-    super().__init__()
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
     pass
 
-  def execute(self, game):
-    print(f"Turn Count: {game.turn_count}")
-    print(f"{game.active_player.name}: Untapping...")
+  def execute(self):
+    if game is None:
+      raise
+    print(f"Turn Count: {self.game.turn_count}")
+    print(f"Round Count: {self.game.round_count}")
+    print(f"{self.game.active_player.name}: Untapping...")
     pass
 
 
 class UpkeepStep(Step):
 
-  def __init__(self):
-    super().__init__()
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
     pass
 
-  def execute(self, game):
-    print(f"{game.active_player.name}: Upkeeping...")
+  def execute(self):
+    print(f"{self.game.active_player.name}: Upkeeping...")
     pass
 
 
 class DrawStep(Step):
 
-  def __init__(self):
-    super().__init__()
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
     pass
 
-  def execute(self, game):
-    print(f"{game.active_player.name}: Drawing Card...")
+  def execute(self):
+    print(f"{self.game.active_player.name}: Drawing Card...")
     pass
 
 
 class MainPhase(Step):
 
-  def __init__(self):
-    super().__init__()
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
     pass
 
-  def execute(self, game):
-    print(f"{game.active_player.name}: Main Phase...")
+  def execute(self):
+    if self.game.combat_occured is True:
+      self.execute_post_combat_main_phase()
+    if self.game.combat_occured is None or self.game.combat_occured is False:
+      self.execute_pre_combat_main_phase()
     pass
+
+  def execute_post_combat_main_phase(self):
+    print(f"{self.game.active_player.name}: Post-Combat Main Phase...")
+
+  def execute_pre_combat_main_phase(self):
+    print(f"{self.game.active_player.name}: Pre-Combat Main Phase...")
 
 
 class BeginningOfCombatStep(Step):
 
-  def __init__(self):
-    super().__init__()
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
     pass
 
-  def execute(self, game):
-    print(f"{game.active_player.name}: Beginning Combat...")
+  def execute(self):
+    self.game.combat_occured = True
+    print(f"{self.game.active_player.name}: Beginning Combat...")
     pass
 
 
 class DeclareAttackersStep(Step):
 
-  def __init__(self):
-    super().__init__()
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
     pass
 
-  def execute(self, game):
-    print(f"{game.active_player.name}: Declaring Attackers...")
+  def execute(self):
+    print(f"{self.game.active_player.name}: Declaring Attackers...")
     pass
 
 
 class DeclareBlockersStep(Step):
 
-  def __init__(self):
-    super().__init__()
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
     pass
 
-  def execute(self, game):
-    print(f"{game.active_player.name}: Declaring Blockers...")
+  def execute(self):
+    print(f"{self.game.active_player.name}: Declaring Blockers...")
     pass
 
 
 class CalculateDamageStep(Step):
 
-  def __init__(self):
-    super().__init__()
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
     pass
 
-  def execute(self, game):
-    print(f"{game.active_player.name}: Calculating Damage...")
+  def execute(self):
+    print(f"{self.game.active_player.name}: Calculating Damage...")
     pass
 
 
 class EndOfCombatStep(Step):
 
-  def __init__(self):
-    super().__init__()
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
     pass
 
-  def execute(self, game):
-    print(f"{game.active_player.name}: Ending Combat...")
+  def execute(self):
+    print(f"{self.game.active_player.name}: Ending Combat...")
     pass
 
 
 class EndStep(Step):
 
-  def __init__(self):
-    super().__init__()
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
     pass
 
-  def execute(self, game):
-    print(f"{game.active_player.name}: Ending Turn...")
+  def execute(self):
+    print(f"{self.game.active_player.name}: Ending Turn...")
     pass
 
 
 class CleanupStep(Step):
 
-  def __init__(self):
-    super().__init__()
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
     pass
 
-  def execute(self, game):
-    print(f"{game.active_player.name}: Cleaning Up Turn...")
+  def execute(self):
+    print(f"{self.game.active_player.name}: Cleaning Up Turn...")
     input("Pause")
     pass
 
