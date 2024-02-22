@@ -160,8 +160,11 @@ class Step():
   def check_priority(self, player):
     self.check_state_based_actions()
     print(f"Checking priority for {player}")
-    priority_check = input("Pause")
-    if priority_check.lower() == 'y':
+    priority_hold_check = player.get_options()
+    if DEBUG:
+      #print(f'{priority_hold_check}')
+      pass
+    if priority_hold_check is True:
       player.priority_passed = True
     if player.priority_passed is False:
       self.reset_table_priority()
@@ -335,6 +338,21 @@ class Player():
   def __str__(self):
     return self.name
 
+  def get_options(self):
+    options = input("1 for hold\n")
+    #options = '1'
+    option = None
+    match options:
+      case '1':
+        option = False
+      case _:
+        option = True
+    if DEBUG:
+      #ic(options)
+      #ic(option)
+      #print(f'{option}')
+      pass
+    return option
 
 if __name__ == "__main__":
   game = MagicTheGathering()
