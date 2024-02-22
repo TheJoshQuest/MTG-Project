@@ -220,7 +220,7 @@ class MainPhase(Step):
     super().__init__(**kwargs)
     pass
 
-  def execute(self):
+  def turn_based_actions(self):
     if self.game.combat_occured is True:
       self.execute_post_combat_main_phase()
     if self.game.combat_occured is None or self.game.combat_occured is False:
@@ -244,7 +244,7 @@ class BeginningOfCombatStep(Step):
     super().__init__(**kwargs)
     pass
 
-  def execute(self):
+  def turn_based_actions(self):
     self.game.combat_occured = True
     print(f"{self.game.active_player.name}: Beginning Combat...")
     self.step_loop()
@@ -257,7 +257,7 @@ class DeclareAttackersStep(Step):
     super().__init__(**kwargs)
     pass
 
-  def execute(self):
+  def turn_based_actions(self):
     print(f"{self.game.active_player.name}: Declaring Attackers...")
     self.step_loop()
     pass
@@ -269,7 +269,7 @@ class DeclareBlockersStep(Step):
     super().__init__(**kwargs)
     pass
 
-  def execute(self):
+  def turn_based_actions(self):
     print(f"{self.game.active_player.name}: Declaring Blockers...")
     self.step_loop()
     pass
@@ -281,7 +281,7 @@ class CalculateDamageStep(Step):
     super().__init__(**kwargs)
     pass
 
-  def execute(self):
+  def turn_based_actions(self):
     print(f"{self.game.active_player.name}: Calculating Damage...")
     self.step_loop()
     pass
