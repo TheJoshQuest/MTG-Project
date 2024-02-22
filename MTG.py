@@ -169,6 +169,7 @@ class Step():
     pass
 
   def check_state_based_actions(self):
+    #https://mtg.fandom.com/wiki/State-based_action
     print(f"Checking state based actions")
     pass
 
