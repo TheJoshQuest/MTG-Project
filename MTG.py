@@ -19,7 +19,6 @@ def cyclic_shift(my_list, n):
   n = n % list_len  # Handle cases where n is greater than the list length
   return my_list[n:] + my_list[:n]
 
-
 class MagicTheGathering():
 
   def __init__(self):
@@ -119,7 +118,6 @@ class MagicTheGathering():
       self.round_count += 1
     return self.active_players[next_player_index]
 
-
 class Step():
 
   def __init__(self, game: MagicTheGathering | None = None, **kwargs):
@@ -176,7 +174,6 @@ class Step():
     print(f"Checking state based actions")
     pass
 
-
 class UntapStep(Step):
 
   def __init__(self, **kwargs):
@@ -192,7 +189,6 @@ class UntapStep(Step):
     #self.step_loop()
     pass
 
-
 class UpkeepStep(Step):
 
   def __init__(self, **kwargs):
@@ -204,7 +200,6 @@ class UpkeepStep(Step):
     self.step_loop()
     pass
 
-
 class DrawStep(Step):
 
   def __init__(self, **kwargs):
@@ -215,7 +210,6 @@ class DrawStep(Step):
     print(f"{self.game.active_player.name}: Drawing Card...")
     self.step_loop()
     pass
-
 
 class MainPhase(Step):
 
@@ -240,7 +234,6 @@ class MainPhase(Step):
     self.step_loop()
     pass
 
-
 class BeginningOfCombatStep(Step):
 
   def __init__(self, **kwargs):
@@ -253,7 +246,6 @@ class BeginningOfCombatStep(Step):
     self.step_loop()
     pass
 
-
 class DeclareAttackersStep(Step):
 
   def __init__(self, **kwargs):
@@ -264,7 +256,6 @@ class DeclareAttackersStep(Step):
     print(f"{self.game.active_player.name}: Declaring Attackers...")
     self.step_loop()
     pass
-
 
 class DeclareBlockersStep(Step):
 
@@ -277,7 +268,6 @@ class DeclareBlockersStep(Step):
     self.step_loop()
     pass
 
-
 class CalculateDamageStep(Step):
 
   def __init__(self, **kwargs):
@@ -288,7 +278,6 @@ class CalculateDamageStep(Step):
     print(f"{self.game.active_player.name}: Calculating Damage...")
     self.step_loop()
     pass
-
 
 class EndOfCombatStep(Step):
 
@@ -301,7 +290,6 @@ class EndOfCombatStep(Step):
     self.step_loop()
     pass
 
-
 class EndStep(Step):
 
   def __init__(self, **kwargs):
@@ -312,7 +300,6 @@ class EndStep(Step):
     print(f"{self.game.active_player.name}: Ending Turn...")
     self.step_loop()
     pass
-
 
 class CleanupStep(Step):
 
@@ -325,7 +312,6 @@ class CleanupStep(Step):
     input("Pause")
     pass
 
-
 class Player():
 
   def __init__(self, name):
@@ -333,12 +319,16 @@ class Player():
     self.is_active_player = False
     self.is_starting_player = False
     self.priority_passed = False
+    self.hand = None
+    self.library = None
     pass
 
   def __str__(self):
     return self.name
 
   def get_available_actions(self):
+
+    
     options = input("1 for hold\n")
     #options = '1'
     option = None
@@ -384,7 +374,10 @@ class PermanentComponent(Component):
     super().__init__()
   pass
 
-
+class zone():
+  def __init__(self):
+    pass
+  pass
 
 if __name__ == "__main__":
   game = MagicTheGathering()
