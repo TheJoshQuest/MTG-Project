@@ -160,7 +160,7 @@ class Step():
   def check_priority(self, player):
     self.check_state_based_actions()
     print(f"Checking priority for {player}")
-    priority_hold_check = player.get_options()
+    priority_hold_check = player.get_available_actions()
     if DEBUG:
       #print(f'{priority_hold_check}')
       pass
@@ -338,7 +338,7 @@ class Player():
   def __str__(self):
     return self.name
 
-  def get_options(self):
+  def get_available_actions(self):
     options = input("1 for hold\n")
     #options = '1'
     option = None
@@ -353,6 +353,38 @@ class Player():
       #print(f'{option}')
       pass
     return option
+
+class GameObject():
+  def __init__(self, name = None):
+    self.name = name
+    pass
+
+class Card(GameObject):
+  def __init__(self):
+    super().__init__()
+    pass
+
+class Component():
+  def __init__(self):
+    pass
+  pass
+
+class CardComponent(Component):
+  def __init__(self):
+    super().__init__()
+  pass
+
+class SpellComponent(Component):
+  def __init__(self):
+    super().__init__()
+  pass
+
+class PermanentComponent(Component):
+  def __init__(self):
+    super().__init__()
+  pass
+
+
 
 if __name__ == "__main__":
   game = MagicTheGathering()
