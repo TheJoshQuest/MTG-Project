@@ -69,6 +69,7 @@ class MagicTheGathering():
     if self.active_players is None or len(self.active_players) == 0:
       raise
     random.shuffle(self.active_players)
+    self.players = self.active_players.copy()
     self.starting_player = self.active_players[0]
     self.active_players[0].is_starting_player = True
     return (self.starting_player)
@@ -115,6 +116,7 @@ class MagicTheGathering():
     if self.active_player in self.active_players:
       current_player_index = self.active_players.index(self.active_player)
     else:
+      #print(self.active_player)
       current_player_index = self.players.index(self.active_player)
       while self.players[current_player_index] not in self.active_players:
         current_player_index = self.players.index(self.active_player) - 1
@@ -166,6 +168,9 @@ class Step():
           self.game.active_players,
           self.game.active_players.index(active_player))
       for player in apnap_turn_order:
+        if active_player not in self.game.active_players:
+          for participents in self.game.active_players:
+            participents.priority_passed = True
         if player.priority_passed is False:
           self.check_priority(player)
         if all(player.priority_passed is True
