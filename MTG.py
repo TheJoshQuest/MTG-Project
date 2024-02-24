@@ -1,3 +1,4 @@
+import copy
 from icecream import ic
 import random
 
@@ -47,9 +48,9 @@ class MagicTheGathering():
         'Cleanup Step': CleanupStep
     }
     self.phase_dictionary = {}
-    self.stack = Zone(name='Stack')
-    self.exile = Zone(name='Exile')
-    self.battlefield = Zone(name='Battlefield')
+    self.stack = Zone(name='Stack', owner=self)
+    self.exile = Zone(name='Exile', owner=self)
+    self.battlefield = Zone(name='Battlefield', owner=self)
 
   def add_player(self, player=None):
     if player is not None:
@@ -63,7 +64,17 @@ class MagicTheGathering():
     return None
 
   def start_game(self):
+    for player in self.active_players:
+      for card in player.library.card_list:
+        if DEBUG:
+          print(f'{player}: {card.name}')
+        card.owner = player
+      player.draw_card(amount=7)
+    self.perform_mulligans()
     self.game_loop()
+
+  def perform_mulligans(self):
+    pass
 
   def determine_starting_player(self):
     if self.active_players is None or len(self.active_players) == 0:
@@ -100,6 +111,9 @@ class MagicTheGathering():
       if self.current_step == 'Cleanup Step':
         self.start_turn(self.next_turn())
       self.advance_step()
+    if len(self.active_players) == 1:
+      self.winners = self.active_players[0]
+      print(f"Game Over! {self.winners.name} wins!")
 
   def advance_step(self):
     if self.current_step is None:
@@ -128,11 +142,12 @@ class MagicTheGathering():
         if current_player_index < 0:
           current_player_index = len(self.players) - 1
     if DEBUG:
-        ic(current_player_index)
+      ic(current_player_index)
     if current_player_index >= (len(self.active_players) - 1):
-      current_player_index = -1 + (current_player_index % len(self.active_players))
+      current_player_index = -1 + (current_player_index %
+                                   len(self.active_players))
     next_player_index = current_player_index + 1
-    if next_player_index >= len(self.active_players) -1 :
+    if next_player_index >= len(self.active_players) - 1:
       next_player_index = 0
     if DEBUG:
       ic(current_player_index)
@@ -158,6 +173,8 @@ class Step():
     #https://mtg.fandom.com/wiki/Turn-based_action
     if issubclass(self.__class__, Step):
       self.turn_based_actions()
+    else:
+      raise
     pass
 
   def reset_table_priority(self):
@@ -186,6 +203,7 @@ class Step():
           self.check_priority(player)
         if all(player.priority_passed is True
                for player in apnap_turn_order) is True:
+          self.game.stack.resolve_stack()
           self.priority_passed = True
     if reset is not True:
       self.reset_table_priority()
@@ -196,7 +214,7 @@ class Step():
     print(f"Checking priority for {player}")
     priority_hold_check = player.get_available_actions()
     if DEBUG:
-      #print(f'{priority_hold_check}')
+      print(f'{priority_hold_check}')
       pass
     if priority_hold_check is True:
       player.priority_passed = True
@@ -310,8 +328,8 @@ class Step():
       #2.5
       print(f"Checking if a player has the highest life total")
       print(f"\n\n")
-    DEBUG2 = True
-    if DEBUG2:
+    #DEBUG2 = True
+    if DEBUG:
       print(f"{len(self.game.active_players)}")
     if len(self.game.active_players) <= 1:
       if len(self.game.active_players) == 1:
@@ -356,9 +374,18 @@ class DrawStep(Step):
 
   def turn_based_actions(self):
     print(f"{self.game.active_player.name}: Drawing Card...")
+    #DEBUG = True
+    if DEBUG:
+      ic(len(self.game.active_player.library.card_list))
     self.game.active_player.draw_card()
     if DEBUG:
-      print(f"Drawn Card: {self.game.active_player.hand.card_list[-1].name}")
+      for card in self.game.active_player.hand.card_list:
+        ic(print(f"Cards in hand {card.name}"))
+      if len(self.game.active_player.hand.card_list) > 0:
+        ic(
+            print(
+                f"Drawn Card: {self.game.active_player.hand.card_list[-1].name}"
+            ))
     self.step_loop()
     pass
 
@@ -480,9 +507,9 @@ class Player():
     self.is_starting_player = False
     self.priority_passed = False
     self.deck = deck
-    self.hand = Zone(name='Hand')
-    self.library = Zone(name='Library', deck=deck)
-    self.graveyard = Zone(name='Graveyard')
+    self.hand = Zone(name='Hand', owner=self)
+    self.library = Zone(name='Library', deck=deck, owner=self)
+    self.graveyard = Zone(name='Graveyard', owner=self)
     self.game = None
     self.lost_game = False
     self.won_game = False
@@ -515,6 +542,14 @@ class Player():
     if options_dict[passing] == 'Concede':
       self.lose_game()
       return True
+    try:
+      options_dict[passing].active_component.cast()
+    except:
+      return False
+    try:
+      options_dict[passing].active_component.activate()
+    except:
+      return False
     return False
 
   def lose_game(self):
@@ -526,9 +561,18 @@ class Player():
     #self.game.start_turn(self.game.next_turn())
 
   def draw_card(self, amount=1):
+    #DEBUG = True
+    if DEBUG:
+      ic(amount)
+      ic(len(self.library.card_list))
+      ic(len(self.hand.card_list))
     while amount > 0:
       self.hand.add_card(self.library.remove_card())
       amount -= 1
+    if DEBUG:
+      ic(amount)
+      ic(len(self.library.card_list))
+      ic(len(self.hand.card_list))
     pass
 
 
@@ -539,17 +583,21 @@ class GameObject():
                type=None,
                power=None,
                toughness=None,
+               owner=None,
                **kwargs):
     self.name = name
     self.type = type
     self.base_power = power
     self.base_toughness = toughness
     self.active_component = None
+    self.owner = owner
     self.components = {
         'Card': CardComponent(self),
         'Spell': SpellComponent(self),
         'Permanent': PermanentComponent(self),
+        'Ability': AbilityComponent(self)
     }
+    self.current_zone = None
     for key, value in kwargs.items():
       setattr(self, key, value)
     pass
@@ -568,14 +616,29 @@ class Card(GameObject):
     super().__init__(name=name)
     for key, value in kwargs.items():
       setattr(self, key, value)
+    self.components['Card'].activate_component()
     pass
 
 
 class Component():
 
-  def __init__(self, game_object=None):
+  def __init__(self, game_object: GameObject | None = None):
     self.parent_game_object = game_object
     pass
+
+  def activate_component(self):
+    self.parent_game_object.active_component = self
+    pass
+
+  def resolve(self):
+    self.parent_game_object.game.stack.remove_card(self.parent_game_object)
+
+    if self.parent_game_object.type in PERMANENT_TYPES:
+      self.parent_game_object.game.battlefield.add_card(
+          self.parent_game_object)
+      self.parent_game_object.components['Permanent'].activate_component()
+    else:
+      self.parent_game_object.owner.graveyard.add_card(self.parent_game_object)
 
   pass
 
@@ -584,6 +647,11 @@ class CardComponent(Component):
 
   def __init__(self, game_object=None):
     super().__init__(game_object=game_object)
+
+  def cast(self):
+    self.parent_game_object.current_zone.remove_card(self.parent_game_object)
+    self.components['Spell'].activate_component()
+    self.parent_game_object.game.stack.add_card(self.parent_game_object)
 
   pass
 
@@ -604,15 +672,25 @@ class PermanentComponent(Component):
   pass
 
 
+class AbilityComponent(Component):
+
+  def __init__(self, game_object=None):
+    super().__init__(game_object=game_object)
+
+  pass
+
+
 class Zone():
 
-  def __init__(self, name=None, deck: list | None = None):
+  def __init__(self,
+               name=None,
+               deck: list | None = None,
+               owner: Player | MagicTheGathering | None = None):
     self.name = name
+    self.owner = owner
     self.card_list = []
     if self.name == 'Library':
       self.card_list = deck
-    if self.name == 'Hand':
-      self.card_list = []
     pass
 
   def __str__(self) -> str:
@@ -620,20 +698,33 @@ class Zone():
       return f"{self.name}"
     return "None"
 
+  def resolve_stack(self):
+    if self.name != 'Stack':
+      return None
+    if len(self.card_list) == 0:
+      return None
+    self.card_list[0].active_component.resolve()
+
   def add_card(self, card=None):
     if card is None:
-      raise
+      return None
     if self.card_list is None:
       raise
+    card.current_zone = self
     self.card_list.append(card)
     pass
 
   def remove_card(self, card=None):
-    if card is None:
-      card = self.card_list[0]
     if self.card_list is None:
       raise
+    if len(self.card_list) == 0 and self.name == 'Library':
+      self.owner.drew_from_empty_library = True
+      return None
+    if card is None:
+      card = self.card_list[0]
+    card.current_zone = None
     self.card_list.remove(card)
+
     return card
 
 
@@ -642,10 +733,10 @@ if __name__ == "__main__":
                        type='Creature',
                        power=1,
                        toughness=1)
-  deck_1 = [test_creature]
-  deck_2 = [test_creature]
-  deck_3 = [test_creature]
-  deck_4 = [test_creature]
+  deck_1 = [copy.deepcopy(test_creature)]
+  deck_2 = [copy.deepcopy(test_creature)]
+  deck_3 = [copy.deepcopy(test_creature)]
+  deck_4 = [copy.deepcopy(test_creature)]
   player_1 = Player(name='Alice', deck=deck_1)
   player_2 = Player(name='Bob', deck=deck_2)
   player_3 = Player(name='Joe', deck=deck_3)
