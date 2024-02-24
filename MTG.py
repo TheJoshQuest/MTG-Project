@@ -4,7 +4,7 @@ import random
 DEBUG = False
 
 
-def cyclic_shift(my_list, n):
+def cyclic_shift(list, n):
   """
   Performs a cyclic shift of a list, starting at the nth index.
 
@@ -15,9 +15,9 @@ def cyclic_shift(my_list, n):
   Returns:
       The cyclically shifted list.
   """
-  list_len = len(my_list)
+  list_len = len(list)
   n = n % list_len  # Handle cases where n is greater than the list length
-  return my_list[n:] + my_list[:n]
+  return list[n:] + list[:n]
 
 
 class MagicTheGathering():
@@ -31,7 +31,7 @@ class MagicTheGathering():
     self.starting_player = None
     self.current_phase = None
     self.current_step = None
-    self.combat_occured = None
+    self.combat_occurred = None
     self.step_registry = {
         'Untap Step': UntapStep,
         'Upkeep Step': UpkeepStep,
@@ -79,13 +79,13 @@ class MagicTheGathering():
       raise
     player.is_active_player = True
     self.active_player = player
-    self.combat_occured = False
+    self.combat_occurred = False
     self.turn_count += 1
     pass
 
   def game_loop(self):
-    game_over = False
-    while not game_over:
+    self.game_over = False
+    while not self.game_over:
       if self.current_step is None:
         self.current_phase = "Beginning Phase"
         self.current_step = "Untap Step"
@@ -113,18 +113,29 @@ class MagicTheGathering():
     pass
 
   def next_turn(self):
+    #DEBUG = True
+    if DEBUG:
+      ic(self.active_players)
+      ic(self.players)
+      ic(self.active_player)
     if self.active_player in self.active_players:
       current_player_index = self.active_players.index(self.active_player)
     else:
       #print(self.active_player)
       current_player_index = self.players.index(self.active_player)
       while self.players[current_player_index] not in self.active_players:
-        current_player_index = self.players.index(self.active_player) - 1
-    next_player_index = current_player_index + 1
-    if next_player_index >= len(self.active_players):
-      next_player_index = 0 + (len(self.active_players) - next_player_index)
-    DEBUG = True
+        current_player_index -= 1
+        if current_player_index < 0:
+          current_player_index = len(self.players) - 1
     if DEBUG:
+        ic(current_player_index)
+    if current_player_index >= (len(self.active_players) - 1):
+      current_player_index = -1 + (current_player_index % len(self.active_players))
+    next_player_index = current_player_index + 1
+    if next_player_index >= len(self.active_players) -1 :
+      next_player_index = 0
+    if DEBUG:
+      ic(current_player_index)
       ic(next_player_index)
       turn_order = [player.name for player in self.active_players]
       ic(turn_order)
@@ -169,8 +180,8 @@ class Step():
           self.game.active_players.index(active_player))
       for player in apnap_turn_order:
         if active_player not in self.game.active_players:
-          for participents in self.game.active_players:
-            participents.priority_passed = True
+          for participants in self.game.active_players:
+            participants.priority_passed = True
         if player.priority_passed is False:
           self.check_priority(player)
         if all(player.priority_passed is True
@@ -299,6 +310,13 @@ class Step():
       #2.5
       print(f"Checking if a player has the highest life total")
       print(f"\n\n")
+    DEBUG2 = True
+    if DEBUG2:
+      print(f"{len(self.game.active_players)}")
+    if len(self.game.active_players) <= 1:
+      if len(self.game.active_players) == 1:
+        self.game.active_players[0].won_game = True
+      self.game.game_over = True
     pass
 
 
@@ -352,9 +370,9 @@ class MainPhase(Step):
     pass
 
   def turn_based_actions(self):
-    if self.game.combat_occured is True:
+    if self.game.combat_occurred is True:
       self.execute_post_combat_main_phase()
-    if self.game.combat_occured is None or self.game.combat_occured is False:
+    if self.game.combat_occurred is None or self.game.combat_occurred is False:
       self.execute_pre_combat_main_phase()
     pass
 
@@ -376,7 +394,7 @@ class BeginningOfCombatStep(Step):
     pass
 
   def turn_based_actions(self):
-    self.game.combat_occured = True
+    self.game.combat_occurred = True
     print(f"{self.game.active_player.name}: Beginning Combat...")
     self.step_loop()
     pass
@@ -467,6 +485,7 @@ class Player():
     self.graveyard = Zone(name='Graveyard')
     self.game = None
     self.lost_game = False
+    self.won_game = False
     pass
 
   def __str__(self):
@@ -479,21 +498,21 @@ class Player():
       pass
     options.append("Pass Priority")
     options.append("Concede")
-    optionsdict = {}
+    options_dict = {}
     i = 0
     for option in options:
-      optionsdict[i] = option
+      options_dict[i] = option
       i += 1
-    for i in optionsdict:
-      print(f"{i+1}: {optionsdict[i]}")
+    for i in options_dict:
+      print(f"{i+1}: {options_dict[i]}")
     passing = input("")
     try:
       passing = int(passing) - 1
     except:
       return True
-    if optionsdict[passing] == 'Pass Priority':
+    if options_dict[passing] == 'Pass Priority':
       return True
-    if optionsdict[passing] == 'Concede':
+    if options_dict[passing] == 'Concede':
       self.lose_game()
       return True
     return False
@@ -501,6 +520,9 @@ class Player():
   def lose_game(self):
     self.lost_game = True
     self.game.active_players.remove(self)
+    if len(self.game.active_players) == 1:
+      self.game.active_players[0].won_game = True
+      self.game.game_over = True
     #self.game.start_turn(self.game.next_turn())
 
   def draw_card(self, amount=1):
@@ -520,8 +542,8 @@ class GameObject():
                **kwargs):
     self.name = name
     self.type = type
-    self.basepower = power
-    self.basetoughness = toughness
+    self.base_power = power
+    self.base_toughness = toughness
     self.active_component = None
     self.components = {
         'Card': CardComponent(self),
@@ -551,8 +573,8 @@ class Card(GameObject):
 
 class Component():
 
-  def __init__(self, gameobject=None):
-    self.parent_gameobject = gameobject
+  def __init__(self, game_object=None):
+    self.parent_game_object = game_object
     pass
 
   pass
@@ -560,24 +582,24 @@ class Component():
 
 class CardComponent(Component):
 
-  def __init__(self, gameobject=None):
-    super().__init__(gameobject=gameobject)
+  def __init__(self, game_object=None):
+    super().__init__(game_object=game_object)
 
   pass
 
 
 class SpellComponent(Component):
 
-  def __init__(self, gameobject=None):
-    super().__init__(gameobject=gameobject)
+  def __init__(self, game_object=None):
+    super().__init__(game_object=game_object)
 
   pass
 
 
 class PermanentComponent(Component):
 
-  def __init__(self, gameobject=None):
-    super().__init__(gameobject=gameobject)
+  def __init__(self, game_object=None):
+    super().__init__(game_object=game_object)
 
   pass
 
