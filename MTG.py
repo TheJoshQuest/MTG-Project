@@ -3,7 +3,9 @@ from icecream import ic
 import random
 
 DEBUG = False
-PERMANENT_TYPES = ['Land', 'Enchantment', 'Creature', 'Battle', 'Artifact', 'Planeswalker']
+PERMANENT_TYPES = [
+    'Land', 'Enchantment', 'Creature', 'Battle', 'Artifact', 'Planeswalker'
+]
 
 
 def cyclic_shift(list, n):
@@ -219,7 +221,7 @@ class Step():
           self.check_priority(player)
         if all(player.priority_passed is True
                for player in apnap_turn_order) is True:
-          if len(self.game.stack.card_list)>0:
+          if len(self.game.stack.card_list) > 0:
             self.game.stack.resolve_stack()
             self.reset_table_priority()
           else:
@@ -658,9 +660,11 @@ class Component():
     pass
 
   def resolve(self):
-    if not(isinstance(self,SpellComponent) or isinstance(self,AbilityComponent)):
+    if not (isinstance(self, SpellComponent)
+            or isinstance(self, AbilityComponent)):
       return None
-    self.parent_game_object.owner.game.stack.remove_card(self.parent_game_object)
+    self.parent_game_object.owner.game.stack.remove_card(
+        self.parent_game_object)
 
     if self.parent_game_object.type in PERMANENT_TYPES:
       self.parent_game_object.owner.game.battlefield.add_card(
@@ -686,13 +690,16 @@ class CardComponent(Component):
     if DEBUG:
       ic(self.parent_game_object.owner.game.stack.card_list)
 
-  def check_is_castable(self, player = None):
+  def check_is_castable(self, player=None):
     #DEBUG = True
     if player is None:
       return False
-    is_main_phase = (self.parent_game_object.owner.game.current_phase == 'Main Phase')
-    stack_is_empty = (len(self.parent_game_object.owner.game.stack.card_list) == 0)
-    is_active_player = (player == self.parent_game_object.owner.game.active_player)
+    is_main_phase = (
+        self.parent_game_object.owner.game.current_phase == 'Main Phase')
+    stack_is_empty = (len(
+        self.parent_game_object.owner.game.stack.card_list) == 0)
+    is_active_player = (
+        player == self.parent_game_object.owner.game.active_player)
     if DEBUG:
       ic(is_main_phase)
       ic(self.parent_game_object.owner.game.current_phase)
