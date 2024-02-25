@@ -3,6 +3,7 @@ from icecream import ic
 import random
 
 DEBUG = False
+PERMANENT_TYPES = ['Land', 'Enchantment', 'Creature', 'Battle', 'Artifact', 'Planeswalker']
 
 
 def cyclic_shift(list, n):
@@ -47,7 +48,20 @@ class MagicTheGathering():
         'End Step': EndStep,
         'Cleanup Step': CleanupStep
     }
-    self.phase_dictionary = {}
+    self.phase_dictionary = {
+        'Untap Step': 'Beginning Phase',
+        'Upkeep Step': 'Beginning Phase',
+        'Draw Step': 'Beginning Phase',
+        'Pre-Combat Main Phase': 'Main Phase',
+        'Beginning of Combat Step': 'Combat Phase',
+        'Declare Attackers Step': 'Combat Phase',
+        'Declare Blockers Step': 'Combat Phase',
+        'Calculate Damage Step': 'Combat Phase',
+        'End of Combat Step': 'Combat Phase',
+        'Post-Combat Main Phase': 'Main Phase',
+        'End Step': 'End Phase',
+        'Cleanup Step': 'End Phase'
+    }
     self.stack = Zone(name='Stack', owner=self)
     self.exile = Zone(name='Exile', owner=self)
     self.battlefield = Zone(name='Battlefield', owner=self)
@@ -119,11 +133,13 @@ class MagicTheGathering():
     if self.current_step is None:
       raise
     all_steps = list(self.step_registry.keys())
+    all_phases_steps = list(self.phase_dictionary.keys())
+    all_phases = list(self.phase_dictionary.values())
     current_step_index = all_steps.index(self.current_step)
-    #current_phase_index =
     next_step_index = (current_step_index + 1) % len(all_steps)
+    next_phase_index = all_phases_steps.index(all_steps[next_step_index])
     self.current_step = all_steps[next_step_index]
-    #self.current_phase = all_phases[next_phase_index]
+    self.current_phase = all_phases[next_phase_index]
     pass
 
   def next_turn(self):
@@ -203,13 +219,17 @@ class Step():
           self.check_priority(player)
         if all(player.priority_passed is True
                for player in apnap_turn_order) is True:
-          self.game.stack.resolve_stack()
-          self.priority_passed = True
+          if len(self.game.stack.card_list)>0:
+            self.game.stack.resolve_stack()
+            self.reset_table_priority()
+          else:
+            self.priority_passed = True
     if reset is not True:
       self.reset_table_priority()
     pass
 
   def check_priority(self, player):
+    #DEBUG = True
     self.check_state_based_actions()
     print(f"Checking priority for {player}")
     priority_hold_check = player.get_available_actions()
@@ -521,7 +541,8 @@ class Player():
   def get_available_actions(self):
     options = []
     for card in self.hand.card_list:
-      options.append(card)
+      if card.active_component.check_is_castable(self):
+        options.append(card)
       pass
     options.append("Pass Priority")
     options.append("Concede")
@@ -537,6 +558,8 @@ class Player():
       passing = int(passing) - 1
     except:
       return True
+    if passing < 0 or passing > len(options_dict):
+      return False
     if options_dict[passing] == 'Pass Priority':
       return True
     if options_dict[passing] == 'Concede':
@@ -584,6 +607,7 @@ class GameObject():
                power=None,
                toughness=None,
                owner=None,
+               controller=None,
                **kwargs):
     self.name = name
     self.type = type
@@ -591,6 +615,9 @@ class GameObject():
     self.base_toughness = toughness
     self.active_component = None
     self.owner = owner
+    self.controller = controller
+    if controller is None:
+      self.controller = self.owner
     self.components = {
         'Card': CardComponent(self),
         'Spell': SpellComponent(self),
@@ -631,10 +658,12 @@ class Component():
     pass
 
   def resolve(self):
-    self.parent_game_object.game.stack.remove_card(self.parent_game_object)
+    if not(isinstance(self,SpellComponent) or isinstance(self,AbilityComponent)):
+      return None
+    self.parent_game_object.owner.game.stack.remove_card(self.parent_game_object)
 
     if self.parent_game_object.type in PERMANENT_TYPES:
-      self.parent_game_object.game.battlefield.add_card(
+      self.parent_game_object.owner.game.battlefield.add_card(
           self.parent_game_object)
       self.parent_game_object.components['Permanent'].activate_component()
     else:
@@ -647,11 +676,33 @@ class CardComponent(Component):
 
   def __init__(self, game_object=None):
     super().__init__(game_object=game_object)
+    self.activate_component()
 
   def cast(self):
+    #DEBUG = True
     self.parent_game_object.current_zone.remove_card(self.parent_game_object)
-    self.components['Spell'].activate_component()
-    self.parent_game_object.game.stack.add_card(self.parent_game_object)
+    self.parent_game_object.components['Spell'].activate_component()
+    self.parent_game_object.owner.game.stack.add_card(self.parent_game_object)
+    if DEBUG:
+      ic(self.parent_game_object.owner.game.stack.card_list)
+
+  def check_is_castable(self, player = None):
+    #DEBUG = True
+    if player is None:
+      return False
+    is_main_phase = (self.parent_game_object.owner.game.current_phase == 'Main Phase')
+    stack_is_empty = (len(self.parent_game_object.owner.game.stack.card_list) == 0)
+    is_active_player = (player == self.parent_game_object.owner.game.active_player)
+    if DEBUG:
+      ic(is_main_phase)
+      ic(self.parent_game_object.owner.game.current_phase)
+      ic(stack_is_empty)
+      ic(len(self.parent_game_object.owner.game.stack.card_list))
+      ic(is_active_player)
+      ic(player.name)
+      ic(self.parent_game_object.owner.game.active_player.name)
+    is_castable = (is_main_phase and stack_is_empty and is_active_player)
+    return is_castable
 
   pass
 
