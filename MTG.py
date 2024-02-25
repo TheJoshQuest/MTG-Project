@@ -68,15 +68,19 @@ class MagicTheGathering():
     self.exile = Zone(name='Exile', owner=self)
     self.battlefield = Zone(name='Battlefield', owner=self)
 
-  def add_player(self, player=None):
-    if player is not None:
+  def add_player(self, playerlist=None):
+    if playerlist is not None:
       if self.players is None:
         self.players = []
       if self.active_players is None:
         self.active_players = []
-      player.game = self
-      self.players.append(player)
-      self.active_players.append(player)
+    if isinstance(playerlist, Player):
+      playerlist.game = self
+      self.players.append(playerlist)
+      self.active_players.append(playerlist)
+    if isinstance(playerlist, list):
+      for player in playerlist:
+        self.add_player(player)
     return None
 
   def start_game(self):
@@ -144,38 +148,29 @@ class MagicTheGathering():
     self.current_phase = all_phases[next_phase_index]
     pass
 
-  def next_turn(self):
-    #DEBUG = True
+  def next_turn(self, player=None):
+    DEBUG = True
     if DEBUG:
-      ic(self.active_players)
-      ic(self.players)
-      ic(self.active_player)
-    if self.active_player in self.active_players:
-      current_player_index = self.active_players.index(self.active_player)
-    else:
-      #print(self.active_player)
-      current_player_index = self.players.index(self.active_player)
-      while self.players[current_player_index] not in self.active_players:
-        current_player_index -= 1
-        if current_player_index < 0:
-          current_player_index = len(self.players) - 1
-    if DEBUG:
-      ic(current_player_index)
-    if current_player_index >= (len(self.active_players) - 1):
-      current_player_index = -1 + (current_player_index %
-                                   len(self.active_players))
-    next_player_index = current_player_index + 1
-    if next_player_index >= len(self.active_players) - 1:
-      next_player_index = 0
-    if DEBUG:
-      ic(current_player_index)
-      ic(next_player_index)
-      turn_order = [player.name for player in self.active_players]
-      ic(turn_order)
-    if next_player_index == 0 and current_player_index == len(
-        self.active_players) - 1:
-      self.round_count += 1
-    return self.active_players[next_player_index]
+      ic(self.active_player.name)
+      active_player_list = []
+      player_list = []
+      for playerdebug in self.players:
+        player_list.append(playerdebug.name)
+      for playerdebug in self.active_players:
+        active_player_list.append(playerdebug.name)
+      ic(player_list)
+      ic(active_player_list)
+    if player is not None:
+      return player
+
+    next_in_turn_order = self.players.index(self.active_player) + 1
+    while self.players[next_in_turn_order] not in self.active_players:
+      if next_in_turn_order == len(self.players):
+        next_in_turn_order = -1
+      next_in_turn_order += 1
+    return self.players[next_in_turn_order]
+
+  pass
 
 
 class Step():
@@ -359,6 +354,8 @@ class Step():
       self.game.game_over = True
     pass
 
+  pass
+
 
 class UntapStep(Step):
 
@@ -372,8 +369,13 @@ class UntapStep(Step):
     print(f"Turn Count: {self.game.turn_count}")
     print(f"Round Count: {self.game.round_count}")
     print(f"{self.game.active_player.name}: Untapping...")
+    for permanent in self.game.battlefield.card_list:
+      if permanent.active_component.controller == self.game.active_player:
+        permanent.active_component.untap()
     #self.step_loop()
     pass
+
+  pass
 
 
 class UpkeepStep(Step):
@@ -386,6 +388,8 @@ class UpkeepStep(Step):
     print(f"{self.game.active_player.name}: Upkeeping...")
     self.step_loop()
     pass
+
+  pass
 
 
 class DrawStep(Step):
@@ -411,6 +415,8 @@ class DrawStep(Step):
     self.step_loop()
     pass
 
+  pass
+
 
 class MainPhase(Step):
 
@@ -435,6 +441,8 @@ class MainPhase(Step):
     self.step_loop()
     pass
 
+  pass
+
 
 class BeginningOfCombatStep(Step):
 
@@ -448,6 +456,8 @@ class BeginningOfCombatStep(Step):
     self.step_loop()
     pass
 
+  pass
+
 
 class DeclareAttackersStep(Step):
 
@@ -459,6 +469,8 @@ class DeclareAttackersStep(Step):
     print(f"{self.game.active_player.name}: Declaring Attackers...")
     self.step_loop()
     pass
+
+  pass
 
 
 class DeclareBlockersStep(Step):
@@ -472,6 +484,8 @@ class DeclareBlockersStep(Step):
     self.step_loop()
     pass
 
+  pass
+
 
 class CalculateDamageStep(Step):
 
@@ -483,6 +497,8 @@ class CalculateDamageStep(Step):
     print(f"{self.game.active_player.name}: Calculating Damage...")
     self.step_loop()
     pass
+
+  pass
 
 
 class EndOfCombatStep(Step):
@@ -496,6 +512,8 @@ class EndOfCombatStep(Step):
     self.step_loop()
     pass
 
+  pass
+
 
 class EndStep(Step):
 
@@ -508,6 +526,8 @@ class EndStep(Step):
     self.step_loop()
     pass
 
+  pass
+
 
 class CleanupStep(Step):
 
@@ -519,6 +539,8 @@ class CleanupStep(Step):
     print(f"{self.game.active_player.name}: Cleaning Up Turn...")
     input("Pause")
     pass
+
+  pass
 
 
 class Player():
@@ -585,6 +607,8 @@ class Player():
       self.game.game_over = True
     #self.game.start_turn(self.game.next_turn())
 
+  pass
+
   def draw_card(self, amount=1):
     #DEBUG = True
     if DEBUG:
@@ -599,6 +623,8 @@ class Player():
       ic(len(self.library.card_list))
       ic(len(self.hand.card_list))
     pass
+
+  pass
 
 
 class GameObject():
@@ -660,8 +686,7 @@ class Component():
     pass
 
   def resolve(self):
-    if not (isinstance(self, SpellComponent)
-            or isinstance(self, AbilityComponent)):
+    if not (isinstance(self, (SpellComponent, AbilityComponent))):
       return None
     self.parent_game_object.owner.game.stack.remove_card(
         self.parent_game_object)
@@ -726,6 +751,14 @@ class PermanentComponent(Component):
 
   def __init__(self, game_object=None):
     super().__init__(game_object=game_object)
+    self.controller = self.parent_game_object.controller
+    self.is_tapped = False
+
+  def untap(self):
+    DEBUG = True
+    if DEBUG:
+      print(f'Untapping {self.parent_game_object.name}')
+    self.is_tapped = False
 
   pass
 
@@ -782,23 +815,54 @@ class Zone():
       card = self.card_list[0]
     card.current_zone = None
     self.card_list.remove(card)
-
     return card
 
+
+class Deck():
+
+  def __init__(self, name=''):
+    self.name = name
+    self.card_list = []
+    pass
+
+  #def __repr__(self):
+  #return self.card_list
+
+  def __str__(self):
+    return self.name
+
+  def add_card(self, cards=None):
+    if isinstance(cards, Card):
+      self.card_list.append(copy.deepcopy(cards))
+    if isinstance(cards, list):
+      for card in cards:
+        self.add_card(card)
+
+  def remove_card(self, card):
+    if card in self.card_list:
+      self.card_list.remove(card)
+
+
+pass
 
 if __name__ == "__main__":
   test_creature = Card(name='Test Creature',
                        type='Creature',
                        power=1,
                        toughness=1)
-  deck_1 = [copy.deepcopy(test_creature)]
-  deck_2 = [copy.deepcopy(test_creature)]
-  deck_3 = [copy.deepcopy(test_creature)]
-  deck_4 = [copy.deepcopy(test_creature)]
-  player_1 = Player(name='Alice', deck=deck_1)
-  player_2 = Player(name='Bob', deck=deck_2)
-  player_3 = Player(name='Joe', deck=deck_3)
-  player_4 = Player(name='Tim', deck=deck_4)
+
+  deck_1 = Deck(name='Deck 1')
+  deck_1.add_card(test_creature)
+  deck_2 = Deck(name='Deck 2')
+  deck_2.add_card(test_creature)
+  deck_3 = Deck(name='Deck 3')
+  deck_3.add_card(test_creature)
+  deck_4 = Deck(name='Deck 4')
+  deck_4.add_card(test_creature)
+  player_1 = Player(name='Alice', deck=deck_1.card_list)
+  player_2 = Player(name='Bob', deck=deck_2.card_list)
+  player_3 = Player(name='Joe', deck=deck_3.card_list)
+  player_4 = Player(name='Tim', deck=deck_4.card_list)
   game = MagicTheGathering()
   game.add_player(player_1)
   game.add_player(player_2)
