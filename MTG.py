@@ -174,7 +174,6 @@ class MagicTheGathering():
       ic(self.players[next_in_turn_order].name)
       ic(self.active_players)
       ic(self.players[next_in_turn_order] not in self.active_players)
-    #nextplayer = ()
 
     while (self.players[next_in_turn_order] not in self.active_players):
       next_in_turn_order += 1
