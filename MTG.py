@@ -662,6 +662,9 @@ class Player():
       ic(len(self.hand.card_list))
     pass
 
+  def can_pay_cost(self, cost, type = 'Mana') -> bool:
+    pass
+  
   pass
 
 
@@ -671,6 +674,7 @@ class GameObject():
                name=None,
                type=None,
                power=None,
+               cost=None,
                toughness=None,
                owner=None,
                controller=None,
@@ -680,6 +684,7 @@ class GameObject():
     self.base_power = power
     self.base_toughness = toughness
     self.active_component = None
+    self.cost = cost
     self.owner = owner
     self.controller = controller
     if controller is None:
@@ -774,6 +779,9 @@ class CardComponent(Component):
         self.parent_game_object.owner.game.stack.card_list) == 0)
     is_active_player = (
         player == self.parent_game_object.owner.game.active_player)
+    is_not_no_cost = (self.parent_game.object.cost is not None)
+    can_pay_cost = player.can_pay_cost(self.parent_game_object.cost, 'Mana')
+      
     if DEBUG:
       ic(is_main_phase)
       ic(self.parent_game_object.owner.game.current_phase)
@@ -782,7 +790,11 @@ class CardComponent(Component):
       ic(is_active_player)
       ic(player.name)
       ic(self.parent_game_object.owner.game.active_player.name)
-    is_castable = (is_main_phase and stack_is_empty and is_active_player)
+    is_castable = all([is_main_phase,
+                       stack_is_empty,
+                       is_active_player,
+                       is_not_no_cost
+                      ])
     return is_castable
 
   pass
@@ -818,6 +830,9 @@ class AbilityComponent(Component):
 
   pass
 
+class Effect():
+  def __init__(self):
+    pass
 
 class Zone():
 
@@ -890,12 +905,19 @@ class Deck():
     if card in self.card_list:
       self.card_list.remove(card)
 
+  pass
 
-pass
+class Mana():
+  def __init__(self,color = "Colorless", restriction = None):
+    self.color = color
+    self.restriction = restriction
+  pass
 
 if __name__ == "__main__":
   test_creature = Card(name='Test Creature',
                        type='Creature',
+                       cost={'C': 0
+                            }
                        power=1,
                        toughness=1)
 
