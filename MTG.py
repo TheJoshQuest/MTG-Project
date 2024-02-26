@@ -149,7 +149,7 @@ class MagicTheGathering():
     pass
 
   def next_turn(self, player=None):
-    DEBUG = True
+    #DEBUG = True
     if DEBUG:
       ic(self.active_player.name)
       active_player_list = []
@@ -164,10 +164,29 @@ class MagicTheGathering():
       return player
 
     next_in_turn_order = self.players.index(self.active_player) + 1
-    while self.players[next_in_turn_order] not in self.active_players:
-      if next_in_turn_order == len(self.players):
-        next_in_turn_order = -1
+    if next_in_turn_order >= len(self.active_players):
+      try:
+        self.players[next_in_turn_order]
+      except IndexError:
+        next_in_turn_order = 0
+    if DEBUG:
+      ic(next_in_turn_order)
+      ic(self.players[next_in_turn_order].name)
+      ic(self.active_players)
+      ic(self.players[next_in_turn_order] not in self.active_players)
+    #nextplayer = ()
+
+    while (self.players[next_in_turn_order] not in self.active_players):
       next_in_turn_order += 1
+      if next_in_turn_order >= len(self.players):
+        next_in_turn_order = 0
+    if self.starting_player not in self.active_players:
+      acting_starting_player = self.active_players[0]
+    else:
+      acting_starting_player = self.starting_player
+    if (self.players[next_in_turn_order] == acting_starting_player) and (
+        self.active_player != acting_starting_player):
+      self.round_count += 1
     return self.players[next_in_turn_order]
 
   pass
@@ -213,6 +232,13 @@ class Step():
           for participants in self.game.active_players:
             participants.priority_passed = True
         if player.priority_passed is False:
+          if len(self.game.stack.card_list) > 0:
+            stack_callout = ""
+            for card in self.game.stack.card_list:
+              stack_callout += card.name
+              if card != self.game.stack.card_list[-1]:
+                stack_callout += ", "
+            print(f"Stack [{stack_callout}]")
           self.check_priority(player)
         if all(player.priority_passed is True
                for player in apnap_turn_order) is True:
@@ -364,13 +390,22 @@ class UntapStep(Step):
     pass
 
   def turn_based_actions(self):
+    #DEBUG = True
     if game is None:
       raise
     print(f"Turn Count: {self.game.turn_count}")
     print(f"Round Count: {self.game.round_count}")
     print(f"{self.game.active_player.name}: Untapping...")
+    if DEBUG:
+      ic(len(self.game.battlefield.card_list))
+      for card in self.game.battlefield.card_list:
+        ic(card.name)
+      ic(self.game.active_player.name)
     for permanent in self.game.battlefield.card_list:
-      if permanent.active_component.controller == self.game.active_player:
+      if DEBUG:
+        ic(permanent.name)
+        ic(permanent.controller.name)
+      if permanent.controller == self.game.active_player:
         permanent.active_component.untap()
     #self.step_loop()
     pass
@@ -551,6 +586,9 @@ class Player():
     self.is_starting_player = False
     self.priority_passed = False
     self.deck = deck
+    if deck is not None:
+      for card in self.deck:
+        card.owner = self
     self.hand = Zone(name='Hand', owner=self)
     self.library = Zone(name='Library', deck=deck, owner=self)
     self.graveyard = Zone(name='Graveyard', owner=self)
@@ -590,11 +628,11 @@ class Player():
       self.lose_game()
       return True
     try:
-      options_dict[passing].active_component.cast()
+      options_dict[passing].active_component.cast(self)
     except:
       return False
     try:
-      options_dict[passing].active_component.activate()
+      options_dict[passing].active_component.activate(self)
     except:
       return False
     return False
@@ -686,17 +724,25 @@ class Component():
     pass
 
   def resolve(self):
+    #DEBUG = True
     if not (isinstance(self, (SpellComponent, AbilityComponent))):
       return None
     self.parent_game_object.owner.game.stack.remove_card(
         self.parent_game_object)
 
     if self.parent_game_object.type in PERMANENT_TYPES:
-      self.parent_game_object.owner.game.battlefield.add_card(
-          self.parent_game_object)
+      if isinstance(self.parent_game_object.owner, MagicTheGathering):
+        self.parent_game_object.owner.battlefield.add_card(
+            self.parent_game_object)
+      else:
+        self.parent_game_object.owner.game.battlefield.add_card(
+            self.parent_game_object)
       self.parent_game_object.components['Permanent'].activate_component()
     else:
       self.parent_game_object.owner.graveyard.add_card(self.parent_game_object)
+
+  def activate(self, player=None):
+    pass
 
   pass
 
@@ -707,13 +753,16 @@ class CardComponent(Component):
     super().__init__(game_object=game_object)
     self.activate_component()
 
-  def cast(self):
+  def cast(self, player=None):
     #DEBUG = True
     self.parent_game_object.current_zone.remove_card(self.parent_game_object)
     self.parent_game_object.components['Spell'].activate_component()
+    if player is not None:
+      self.parent_game_object.controller = player
     self.parent_game_object.owner.game.stack.add_card(self.parent_game_object)
     if DEBUG:
       ic(self.parent_game_object.owner.game.stack.card_list)
+      ic(self.parent_game_object.controller)
 
   def check_is_castable(self, player=None):
     #DEBUG = True
@@ -751,7 +800,6 @@ class PermanentComponent(Component):
 
   def __init__(self, game_object=None):
     super().__init__(game_object=game_object)
-    self.controller = self.parent_game_object.controller
     self.is_tapped = False
 
   def untap(self):
