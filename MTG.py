@@ -68,18 +68,18 @@ class MagicTheGathering():
     self.exile = Zone(name='Exile', owner=self)
     self.battlefield = Zone(name='Battlefield', owner=self)
 
-  def add_player(self, playerlist=None):
-    if playerlist is not None:
+  def add_player(self, player_list=None):
+    if player_list is not None:
       if self.players is None:
         self.players = []
       if self.active_players is None:
         self.active_players = []
-    if isinstance(playerlist, Player):
-      playerlist.game = self
-      self.players.append(playerlist)
-      self.active_players.append(playerlist)
-    if isinstance(playerlist, list):
-      for player in playerlist:
+    if isinstance(player_list, Player):
+      player_list.game = self
+      self.players.append(player_list)
+      self.active_players.append(player_list)
+    if isinstance(player_list, list):
+      for player in player_list:
         self.add_player(player)
     return None
 
@@ -154,10 +154,10 @@ class MagicTheGathering():
       ic(self.active_player.name)
       active_player_list = []
       player_list = []
-      for playerdebug in self.players:
-        player_list.append(playerdebug.name)
-      for playerdebug in self.active_players:
-        active_player_list.append(playerdebug.name)
+      for player_debug in self.players:
+        player_list.append(player_debug.name)
+      for player_debug in self.active_players:
+        active_player_list.append(player_debug.name)
       ic(player_list)
       ic(active_player_list)
     if player is not None:
