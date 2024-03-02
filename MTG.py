@@ -382,7 +382,6 @@ class Step():
 
   pass
 
-
 class UntapStep(Step):
 
   def __init__(self, **kwargs):
@@ -412,7 +411,6 @@ class UntapStep(Step):
 
   pass
 
-
 class UpkeepStep(Step):
 
   def __init__(self, **kwargs):
@@ -425,7 +423,6 @@ class UpkeepStep(Step):
     pass
 
   pass
-
 
 class DrawStep(Step):
 
@@ -452,7 +449,6 @@ class DrawStep(Step):
 
   pass
 
-
 class MainPhase(Step):
 
   def __init__(self, **kwargs):
@@ -478,7 +474,6 @@ class MainPhase(Step):
 
   pass
 
-
 class BeginningOfCombatStep(Step):
 
   def __init__(self, **kwargs):
@@ -493,7 +488,6 @@ class BeginningOfCombatStep(Step):
 
   pass
 
-
 class DeclareAttackersStep(Step):
 
   def __init__(self, **kwargs):
@@ -506,7 +500,6 @@ class DeclareAttackersStep(Step):
     pass
 
   pass
-
 
 class DeclareBlockersStep(Step):
 
@@ -521,7 +514,6 @@ class DeclareBlockersStep(Step):
 
   pass
 
-
 class CalculateDamageStep(Step):
 
   def __init__(self, **kwargs):
@@ -534,7 +526,6 @@ class CalculateDamageStep(Step):
     pass
 
   pass
-
 
 class EndOfCombatStep(Step):
 
@@ -549,7 +540,6 @@ class EndOfCombatStep(Step):
 
   pass
 
-
 class EndStep(Step):
 
   def __init__(self, **kwargs):
@@ -562,7 +552,6 @@ class EndStep(Step):
     pass
 
   pass
-
 
 class CleanupStep(Step):
 
@@ -707,7 +696,6 @@ class GameObject():
 
   pass
 
-
 class Card(GameObject):
 
   def __init__(self, name=None, **kwargs):
@@ -716,7 +704,6 @@ class Card(GameObject):
       setattr(self, key, value)
     self.components['Card'].activate_component()
     pass
-
 
 class Component():
 
@@ -750,7 +737,6 @@ class Component():
     pass
 
   pass
-
 
 class CardComponent(Component):
 
@@ -799,14 +785,12 @@ class CardComponent(Component):
 
   pass
 
-
 class SpellComponent(Component):
 
   def __init__(self, game_object=None):
     super().__init__(game_object=game_object)
 
   pass
-
 
 class PermanentComponent(Component):
 
@@ -822,7 +806,6 @@ class PermanentComponent(Component):
 
   pass
 
-
 class AbilityComponent(Component):
 
   def __init__(self, game_object=None):
@@ -833,6 +816,7 @@ class AbilityComponent(Component):
 class Effect():
   def __init__(self):
     pass
+
 
 class Zone():
 
@@ -907,11 +891,13 @@ class Deck():
 
   pass
 
+
 class Mana():
   def __init__(self,color = "Colorless", restriction = None):
     self.color = color
     self.restriction = restriction
   pass
+
 
 if __name__ == "__main__":
   test_creature = Card(name='Test Creature',
