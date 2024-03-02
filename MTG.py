@@ -779,7 +779,7 @@ class CardComponent(Component):
         self.parent_game_object.owner.game.stack.card_list) == 0)
     is_active_player = (
         player == self.parent_game_object.owner.game.active_player)
-    is_not_no_cost = (self.parent_game.object.cost is not None)
+    is_not_no_cost = (self.parent_game_object.cost is not None)
     can_pay_cost = player.can_pay_cost(self.parent_game_object.cost, 'Mana')
       
     if DEBUG:
