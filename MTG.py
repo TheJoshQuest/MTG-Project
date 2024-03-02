@@ -917,7 +917,7 @@ if __name__ == "__main__":
   test_creature = Card(name='Test Creature',
                        type='Creature',
                        cost={'C': 0
-                            }
+                            },
                        power=1,
                        toughness=1)
   deck_1 = Deck(name='Deck 1')
